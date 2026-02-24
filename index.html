@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Accelerated Mobile PDLC</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0d;
+    --surface: #1a1a16;
+    --border: #2e2e28;
+    --accent: #e8c547;
+    --accent2: #6ee7b7;
+    --accent3: #f87171;
+    --text: #f2ede0;
+    --muted: #9a9488;
+    --figmamake: #e8c547;
+    --github: #6ee7b7;
+    --cursor: #93c5fd;
+    --prod: #a78bfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 60px 40px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Grain texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 64px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 32px;
+  }
+
+  .header-left {}
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 7vw, 88px);
+    line-height: 0.95;
+    letter-spacing: 0.01em;
+    color: var(--text);
+  }
+
+  h1 span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    max-width: 340px;
+    line-height: 1.6;
+    margin-top: 16px;
+    font-weight: 300;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  /* Compare bar */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 56px;
+    border: 1px solid var(--border);
+  }
+
+  .compare-col {
+    padding: 24px 28px;
+    position: relative;
+  }
+
+  .compare-col:first-child {
+    border-right: 1px solid var(--border);
+    opacity: 0.55;
+  }
+
+  .compare-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .compare-label::before {
+    content: '';
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .compare-col:last-child .compare-label {
+    color: var(--accent);
+  }
+
+  .compare-col:last-child .compare-label::before {
+    background: var(--accent);
+  }
+
+  .compare-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .compare-step {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .compare-arrow {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .compare-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    margin-top: 12px;
+  }
+
+  .compare-col:last-child .compare-time {
+    color: var(--accent2);
+  }
+
+  /* Detailed compare flow */
+  .compare-flow-detailed {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+
+  .compare-step-block {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .csb-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .csb-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .csb-time.trad { color: var(--accent3); }
+  .csb-time.fast { color: var(--accent2); }
+
+  .csb-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  /* Rebuttal section */
+  .rebuttal {
+    margin-bottom: 56px;
+    border: 1px solid var(--border);
+    border-top: 2px solid #f87171;
+  }
+
+  .rebuttal-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(248,113,113,0.04);
+  }
+
+  .rebuttal-icon {
+    font-size: 24px;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .rebuttal-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .rebuttal-sub {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .rebuttal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .rebuttal-card {
+    padding: 22px 26px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .rebuttal-card:nth-child(2),
+  .rebuttal-card:nth-child(4) {
+    border-right: none;
+  }
+
+  .rebuttal-card:nth-child(3),
+  .rebuttal-card:nth-child(4) {
+    border-bottom: none;
+  }
+
+  .rc-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent3);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .rc-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .rc-body {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  .rebuttal-grid-2 .rebuttal-card:nth-child(1),
+  .rebuttal-grid-2 .rebuttal-card:nth-child(2) {
+    border-bottom: none;
+  }
+
+  .rebuttal-grid-2 .rebuttal-card:nth-child(2) {
+    border-right: none;
+  }
+
+  .rc-body em {
+    color: var(--accent2);
+    font-style: normal;
+    font-weight: 500;
+  }
+
+  /* Main flow */
+  .flow-wrapper {
+    position: relative;
+  }
+
+  .flow-track {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  /* Phase rows */
+  .phase {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0;
+    position: relative;
+  }
+
+  .phase-label-col {
+    padding: 0 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding-top: 28px;
+  }
+
+  .phase-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+    writing-mode: horizontal-tb;
+  }
+
+  .phase-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 36px;
+    color: var(--border);
+    line-height: 1;
+    text-align: right;
+    margin-top: 4px;
+  }
+
+  .phase-content-col {
+    border-left: 2px solid var(--border);
+    padding: 0 0 48px 36px;
+    position: relative;
+  }
+
+  .phase-dot {
+    position: absolute;
+    left: -7px;
+    top: 24px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--muted);
+  }
+
+  /* Node card */
+  .node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 28px;
+    position: relative;
+    transition: border-color 0.2s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .node:hover {
+    border-color: var(--accent);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .node-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .node-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .node-tool {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid currentColor;
+    opacity: 0.7;
+  }
+
+  .node-body {
+    font-size: 13.5px;
+    color: #a8a398;
+    line-height: 1.65;
+    max-width: 600px;
+    font-weight: 300;
+  }
+
+  .node-footer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .node-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .node-meta strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* Color variants */
+  .phase-1 .phase-dot { border-color: var(--accent); background: var(--accent); }
+  .phase-1 .node { border-color: rgba(232,197,71,0.25); }
+  .phase-1 .node-title { color: var(--figmamake); }
+  .phase-1 .node-tool { color: var(--figmamake); }
+
+  .phase-2 .phase-dot { border-color: #f97316; background: #f97316; }
+  .phase-2 .node-title { color: #fb923c; }
+  .phase-2 .node-tool { color: #fb923c; }
+
+  .phase-3 .phase-dot { border-color: var(--accent2); background: var(--accent2); }
+  .phase-3 .node-title { color: var(--accent2); }
+  .phase-3 .node-tool { color: var(--accent2); }
+
+  .phase-4 .phase-dot { border-color: var(--cursor); background: var(--cursor); }
+  .phase-4 .node-title { color: var(--cursor); }
+  .phase-4 .node-tool { color: var(--cursor); }
+
+  .phase-5 .phase-dot { border-color: var(--prod); background: var(--prod); }
+  .phase-5 .node-title { color: var(--prod); }
+  .phase-5 .node-tool { color: var(--prod); }
+
+  .phase-design .phase-dot { border-color: #f472b6; background: #f472b6; }
+  .phase-design .node { border-color: rgba(244,114,182,0.2); }
+  .phase-design .node-title { color: #f472b6; }
+  .phase-design .node-tool { color: #f472b6; }
+
+  /* Decision fork */
+  .fork {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .fork-card {
+    border: 1px dashed var(--border);
+    padding: 14px 16px;
+    position: relative;
+  }
+
+  .fork-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .fork-card.pass .fork-label { color: var(--accent2); }
+  .fork-card.fail .fork-label { color: var(--accent3); }
+
+  .fork-text {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .fork-card.fail {
+    opacity: 0.7;
+  }
+
+  /* Arrow connector between phases */
+  .connector {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0 36px;
+    margin: 0;
+    height: 0;
+    position: relative;
+  }
+
+  /* Timeline side labels */
+  .timeline-bar {
+    position: absolute;
+    left: 120px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent) 0%, var(--accent2) 50%, var(--prod) 100%);
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
+  /* Callout box */
+  .callout {
+    margin-top: 48px;
+    border: 1px solid var(--accent);
+    padding: 28px 32px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: start;
+    background: rgba(232,197,71,0.04);
+  }
+
+  .callout-icon {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .callout-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+
+  .callout-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* Role shift section */
+  .roles {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+
+  .role-card {
+    padding: 24px;
+    border-right: 1px solid var(--border);
+  }
+
+  .role-card:last-child { border-right: none; }
+
+  .role-icon {
+    font-size: 24px;
+    margin-bottom: 12px;
+  }
+
+  .role-old {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-decoration: line-through;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+
+  .role-new {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .role-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.15s; }
+  .stagger-3 { animation-delay: 0.25s; }
+  .stagger-4 { animation-delay: 0.35s; }
+  .stagger-5 { animation-delay: 0.45s; }
+  .stagger-6 { animation-delay: 0.55s; }
+  .stagger-7 { animation-delay: 0.65s; }
+
+  /* ── PDLC VISUAL ── */
+  .pdlc-visual {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    position: relative;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .pdlc-line {
+    display: none;
+  }
+
+  .pdlc-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 24px 16px 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    min-width: 160px;
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+
+  .pdlc-node:hover { border-color: var(--accent); }
+
+  .pdlc-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 8px;
+    opacity: 0.2;
+  }
+
+  .pdlc-icon {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+
+  .pdlc-label {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+
+  .pdlc-sublabel {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+    font-weight: 300;
+  }
+
+  .pdlc-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .pdlc-tool {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .pdlc-fork {
+    margin-top: 12px;
+    width: 100%;
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+  }
+
+  .pdlc-fork-pass {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+
+  .pdlc-fork-fail {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--accent3);
+  }
+
+  /* Node colour accents */
+  .pdlc-node-1 { border-top: 2px solid var(--accent); }
+  .pdlc-node-1 .pdlc-label { color: var(--accent); }
+  .pdlc-node-1 .pdlc-time { color: var(--accent); }
+
+  .pdlc-node-2 { border-top: 2px solid #fb923c; }
+  .pdlc-node-2 .pdlc-label { color: #fb923c; }
+  .pdlc-node-2 .pdlc-time { color: #fb923c; }
+
+  .pdlc-node-3 { border-top: 2px solid #f472b6; }
+  .pdlc-node-3 .pdlc-label { color: #f472b6; }
+  .pdlc-node-3 .pdlc-time { color: #f472b6; }
+
+  .pdlc-node-4 { border-top: 2px solid var(--cursor); }
+  .pdlc-node-4 .pdlc-label { color: var(--cursor); }
+  .pdlc-node-4 .pdlc-time { color: var(--cursor); }
+
+  .pdlc-node-5 { border-top: 2px solid var(--prod); }
+  .pdlc-node-5 .pdlc-label { color: var(--prod); }
+  .pdlc-node-5 .pdlc-time { color: var(--prod); }
+
+  /* Arrows */
+  .pdlc-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    flex-shrink: 0;
+    padding: 0 4px;
+    margin-top: 40px;
+  }
+
+  .pdlc-arrow svg { display: block; }
+
+  .pdlc-arrow-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+    white-space: nowrap;
+    writing-mode: horizontal-tb;
+    text-align: center;
+  }
+
+  /* Arrow colours matching destination node */
+  .pdlc-arrow-1 { color: #fb923c; }
+  .pdlc-arrow-2 { color: #f472b6; }
+  .pdlc-arrow-3 { color: var(--cursor); }
+  .pdlc-arrow-4 { color: var(--prod); }
+
+  /* Loop back */
+  .pdlc-loop {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    border: 1px dashed var(--border);
+    border-top: none;
+  }
+
+  .pdlc-loop-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* Time comparison bars */
+  .pdlc-summary {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .pdlc-summary-col {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .pdlc-summary-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    width: 120px;
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+
+  .pdlc-summary-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    position: relative;
+    max-width: 500px;
+  }
+
+  .pdlc-bar-fill {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .trad-fill { background: var(--accent3); opacity: 0.6; }
+  .fast-fill { background: var(--accent2); }
+
+  .pdlc-summary-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .trad-col .pdlc-summary-time { color: var(--accent3); }
+  .fast-col .pdlc-summary-time { color: var(--accent2); }
+
+  /* Mobile: stack nodes vertically */
+  @media (max-width: 768px) {
+    .pdlc-visual {
+      flex-direction: column;
+      align-items: stretch;
+      overflow-x: visible;
+    }
+
+    .pdlc-node {
+      min-width: unset;
+      flex-direction: row;
+      text-align: left;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .pdlc-num { font-size: 20px; min-width: 32px; }
+    .pdlc-icon { font-size: 22px; min-width: 28px; }
+
+    .pdlc-arrow {
+      flex-direction: row;
+      margin-top: 0;
+      padding: 8px 16px;
+      justify-content: flex-start;
+      gap: 8px;
+    }
+
+    .pdlc-arrow svg {
+      transform: rotate(90deg);
+    }
+
+    .pdlc-arrow-label {
+      writing-mode: horizontal-tb;
+      margin-top: 0;
+    }
+
+    .pdlc-summary-col {
+      flex-wrap: wrap;
+    }
+
+    .pdlc-summary-label {
+      width: 100%;
+    }
+  }
+  /* ── TIMELINE COMPARE ── */
+  .timeline-compare {
+    margin-bottom: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+  }
+
+  .tl-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tl-row:last-child { border-bottom: none; }
+
+  .tl-label {
+    width: 110px;
+    flex-shrink: 0;
+    padding: 16px 16px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--surface);
+  }
+
+  .tl-label-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .tl-label-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent3);
+    letter-spacing: 0.05em;
+  }
+
+  .tl-row-fast .tl-label-sub { color: var(--accent2); }
+
+  .tl-track {
+    display: flex;
+    flex: 1;
+    align-items: stretch;
+    min-height: 64px;
+  }
+
+  .tl-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px 10px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+    min-width: 0;
+  }
+
+  .tl-block:last-child { border-right: none; }
+
+  .tl-bname {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+
+  .tl-btime {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .tl-bsub {
+    font-size: 9px;
+    color: var(--muted);
+    font-weight: 300;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    margin-bottom: 3px;
+    opacity: 0.8;
+  }
+
+  /* Traditional blocks */
+  .tl-trad { background: rgba(248,113,113,0.06); }
+  .tl-trad .tl-btime { color: var(--accent3); }
+  .tl-trad-heavy { background: rgba(248,113,113,0.14); }
+
+  /* Fast track blocks */
+  .tl-fast-1 { background: rgba(232,197,71,0.10); }
+  .tl-fast-1 .tl-btime { color: var(--accent); }
+  .tl-fast-2 { background: rgba(251,146,60,0.10); }
+  .tl-fast-2 .tl-btime { color: #fb923c; }
+  .tl-fast-3 { background: rgba(244,114,182,0.10); }
+  .tl-fast-3 .tl-btime { color: #f472b6; }
+  .tl-fast-4 { background: rgba(147,197,253,0.10); }
+  .tl-fast-4 .tl-btime { color: var(--cursor); }
+  .tl-fast-qa { background: rgba(110,231,183,0.10); }
+  .tl-fast-qa .tl-btime { color: var(--accent2); }
+
+  /* Ship blocks */
+  .tl-ship-trad {
+    background: rgba(248,113,113,0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+  .tl-ship-fast {
+    background: rgba(110,231,183,0.20);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .tl-empty { background: transparent; }
+
+  @media (max-width: 768px) {
+    .tl-row { flex-direction: column; }
+    .tl-label {
+      width: 100%;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+    }
+    .tl-track { overflow-x: auto; min-height: 56px; }
+    .tl-block { min-width: 70px; }
+    .tl-empty { display: none; }
+  }
+
+  /* ── RESOURCE SAVINGS ── */
+  .resource-savings {
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent2);
+  }
+
+  .rs-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(110,231,183,0.04);
+  }
+
+  .rs-icon { font-size: 24px; line-height: 1; margin-top: 2px; }
+
+  .rs-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+  }
+
+  .rs-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  .rs-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+
+  .rs-card {
+    padding: 24px 20px;
+    border-right: 1px solid var(--border);
+  }
+
+  .rs-card:last-child { border-right: none; }
+  .rs-card-highlight { background: rgba(110,231,183,0.05); }
+
+  .rs-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    line-height: 1;
+    color: var(--accent2);
+    margin-bottom: 4px;
+  }
+
+  .rs-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .rs-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .rs-footnote {
+    padding: 12px 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--border);
+    opacity: 0.6;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding: 32px 20px;
+    }
+
+    /* Header stacks vertically */
+    .header {
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .header-right {
+      text-align: left;
+    }
+
+    .subtitle {
+      max-width: 100%;
+    }
+
+    /* Compare columns stack */
+    .compare {
+      grid-template-columns: 1fr;
+      margin-bottom: 32px;
+    }
+
+    .compare-col:first-child {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Compare flow wraps into vertical list */
+    .compare-flow-detailed {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .compare-arrow {
+      transform: rotate(90deg);
+      display: block;
+      margin-left: 4px;
+    }
+
+    .csb-name,
+    .csb-sub,
+    .csb-time {
+      white-space: normal;
+    }
+
+    /* Phase layout: collapse label col */
+    .phase {
+      grid-template-columns: 48px 1fr;
+    }
+
+    .phase-label-col {
+      padding: 0 12px 0 0;
+      padding-top: 24px;
+    }
+
+    .phase-tag {
+      font-size: 7px;
+      letter-spacing: 0.15em;
+    }
+
+    .phase-num {
+      font-size: 24px;
+    }
+
+    .phase-content-col {
+      padding: 0 0 36px 20px;
+    }
+
+    /* Node cards */
+    .node {
+      padding: 18px 16px;
+    }
+
+    .node-header {
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .node-title {
+      font-size: 17px;
+    }
+
+    .node-footer {
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    /* Fork: single column */
+    .fork {
+      grid-template-columns: 1fr;
+    }
+
+    /* Rebuttal grids: single column */
+    .rebuttal-grid,
+    .rebuttal-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .rebuttal-card {
+      border-right: none !important;
+      border-bottom: 1px solid var(--border) !important;
+    }
+
+    .rebuttal-card:last-child {
+      border-bottom: none !important;
+    }
+
+    .rebuttal-header {
+      padding: 18px 16px;
+    }
+
+    .rebuttal-title {
+      font-size: 14px;
+    }
+
+    /* Callout */
+    .callout {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 20px 16px;
+    }
+
+    /* Role cards: single column */
+    .roles {
+      grid-template-columns: 1fr;
+    }
+
+    .role-card {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .role-card:last-child {
+      border-bottom: none;
+    }
+
+    /* Resource savings */
+    .rs-grid { grid-template-columns: 1fr 1fr; }
+    .rs-card:nth-child(2) { border-right: none; }
+    .rs-card:nth-child(1),
+    .rs-card:nth-child(2) { border-bottom: 1px solid var(--border); }
+
+    /* Footer stacks */
+    .footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    body { padding: 24px 16px; }
+    h1 { font-size: 48px; }
+    .phase { grid-template-columns: 40px 1fr; }
+    .phase-content-col { padding: 0 0 28px 16px; }
+    .node-body { font-size: 13px; }
+    .rs-grid { grid-template-columns: 1fr; }
+    .rs-card { border-right: none; border-bottom: 1px solid var(--border); }
+    .rs-card:last-child { border-bottom: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">Product Development Model · 2026</div>
+      <h1>Ship More.<br><span>Move Faster.</span></h1>
+      <p class="subtitle">A model for mobile product teams ready to use AI as a delivery advantage — without compromising craft, collaboration, or engineering quality.</p>
+    </div>
+    <div class="header-right">
+      <div class="badge">Inspired by Lazar Jovanovic · Lenny's Podcast</div><br>
+      <div class="badge" style="color: var(--accent); border-color: rgba(232,197,71,0.3);">Created by Zoli Radnai</div>
+    </div>
+  </div>
+
+  <!-- Key Insight Callout -->
+  <div class="callout" style="animation: fadeUp 0.5s 0.15s ease both; margin-bottom: 56px;">
+    <div class="callout-icon">⚡</div>
+    <div>
+      <div class="callout-title">The Core Shift</div>
+      <div class="callout-text">
+        Expectations are rising. Timelines are compressing. The ask — more output, faster delivery, leaner execution — isn't going away. What has changed is what's now possible: AI has made it viable to build and validate a working product idea in days, not weeks. The question is whether the process around it is built to use that advantage.<br><br>The Fast Track is built for exactly that. Rather than treating the prototype as something you create <em>after</em> alignment, it makes the prototype the <em>instrument</em> of alignment. The vision is tangible before any downstream work begins. Engineers start from a proven skeleton, not a written brief. The artifact replaces the document. Speed compounds — and craft, collaboration, and quality are fully preserved.
+      </div>
+    </div>
+  </div>
+
+  <!-- Old vs New Compare -->
+  <div class="timeline-compare stagger-1" style="animation: fadeUp 0.5s ease both; animation-delay: 0.1s;">
+
+    <!-- Traditional -->
+    <div class="tl-row">
+      <div class="tl-label">
+        <div class="tl-label-title">Traditional</div>
+        <div class="tl-label-sub">10–20 weeks</div>
+      </div>
+      <div class="tl-track">
+        <div class="tl-block tl-trad" style="flex:0.5">
+          <div class="tl-bname">Ticket</div>
+          <div class="tl-bsub">AHA / ADO</div>
+          <div class="tl-btime">1–2d</div>
+        </div>
+        <div class="tl-block tl-trad" style="flex:1.5">
+          <div class="tl-bname">Alignment</div>
+          <div class="tl-bsub">Functions & stakeholders</div>
+          <div class="tl-btime">1–2w</div>
+        </div>
+        <div class="tl-block tl-trad" style="flex:4">
+          <div class="tl-bname">Design</div>
+          <div class="tl-bsub">Greenfield from text</div>
+          <div class="tl-btime">2–6w</div>
+        </div>
+        <div class="tl-block tl-trad" style="flex:1.5">
+          <div class="tl-bname">Planning</div>
+          <div class="tl-bsub">Design approval, estimation</div>
+          <div class="tl-btime">1–2w</div>
+        </div>
+        <div class="tl-block tl-trad tl-trad-heavy" style="flex:6">
+          <div class="tl-bname">Build & Integrate</div>
+          <div class="tl-bsub">Product & design dependencies</div>
+          <div class="tl-btime">4–8w</div>
+        </div>
+        <div class="tl-block tl-trad" style="flex:1.5">
+          <div class="tl-bname">QA & Release</div>
+          <div class="tl-bsub">QA & Testing</div>
+          <div class="tl-btime">1–2w</div>
+        </div>
+        <div class="tl-block tl-ship-trad" style="flex:0.5">
+          <div class="tl-bname">🚀</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fast Track -->
+    <div class="tl-row tl-row-fast">
+      <div class="tl-label">
+        <div class="tl-label-title" style="color:var(--accent)">Fast Track</div>
+        <div class="tl-label-sub" style="color:var(--accent2)">5–10 weeks</div>
+      </div>
+      <div class="tl-track">
+        <div class="tl-block tl-fast tl-fast-1" style="flex:0.5">
+          <div class="tl-bname">Prototype</div>
+          <div class="tl-bsub">Attached to ticket</div>
+          <div class="tl-btime">1–2d</div>
+        </div>
+        <div class="tl-block tl-fast tl-fast-2" style="flex:1">
+          <div class="tl-bname">Validate</div>
+          <div class="tl-bsub">Functions & stakeholders</div>
+          <div class="tl-btime">~1w</div>
+        </div>
+        <div class="tl-block tl-fast tl-fast-3" style="flex:1.5">
+          <div class="tl-bname">Design</div>
+          <div class="tl-bsub">Finalise prototype</div>
+          <div class="tl-btime">1–2w</div>
+        </div>
+        <div class="tl-block tl-fast tl-fast-4" style="flex:3">
+          <div class="tl-bname">Engineering</div>
+          <div class="tl-bsub">AI enhanced, less complexity, fewer dependencies</div>
+          <div class="tl-btime">2–4w</div>
+        </div>
+        <div class="tl-block tl-fast tl-fast-qa" style="flex:1">
+          <div class="tl-bname">QA & Release</div>
+          <div class="tl-bsub">QA & Testing</div>
+          <div class="tl-btime">~1w</div>
+        </div>
+        <div class="tl-block tl-ship-fast" style="flex:0.5">
+          <div class="tl-bname">🚀</div>
+        </div>
+        <div class="tl-empty" style="flex:4"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Flow -->
+  <div class="flow-wrapper">
+
+    <div class="flow-track">
+
+      <!-- Phase 1 -->
+      <div class="phase phase-1">
+        <div class="phase-label-col">
+          <div class="phase-tag">Initiate</div>
+          <div class="phase-num">01</div>
+        </div>
+        <div class="phase-content-col">
+          <div class="phase-dot"></div>
+          <div class="node stagger-2">
+            <div class="node-header">
+              <div class="node-title">Parallel Prototyping in Figma Make</div>
+              <div class="node-tool">Figma Make</div>
+            </div>
+            <div class="node-body">
+              Non-technical builders — PMs, product owners, and business stakeholders — kick off 2–3 parallel prototype variants in Figma Make simultaneously. The goal isn't a finished product — it's to externalize thinking into <em>working interactive prototypes</em> rather than documents. Each variant tests a different architectural or UX assumption. Time: 2–5 days.
+            </div>
+            <div class="node-footer">
+              <div class="node-meta">⏱ <strong>Days, not weeks</strong></div>
+              <div class="node-meta">👤 <strong>Non-technical builder</strong></div>
+              <div class="node-meta">📦 <strong>Output: interactive prototype variants</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="phase phase-2">
+        <div class="phase-label-col">
+          <div class="phase-tag">Validate</div>
+          <div class="phase-num">02</div>
+        </div>
+        <div class="phase-content-col">
+          <div class="phase-dot"></div>
+          <div class="node stagger-3">
+            <div class="node-header">
+              <div class="node-title">Validate with Design, Engineering & Stakeholders</div>
+              <div class="node-tool">Demo, Don't Memo</div>
+            </div>
+            <div class="node-body">
+              Show a working prototype, not a long written ticket or a slide deck for internal team meetings and stakeholder presentations, like SteerCo or Sprint demos. Stakeholders react to real interactions, not imagined ones. This collapses interpretation gaps — everyone aligns on the same artifact. Feedback is concrete and actionable. One winning prototype is selected.
+            </div>
+            <div class="node-footer">
+              <div class="node-meta">🎯 <strong>Select 1 winner</strong></div>
+              <div class="node-meta">🗣 <strong>Stakeholders react to reality</strong></div>
+            </div>
+            <div class="fork">
+              <div class="fork-card pass">
+                <div class="fork-label">✓ Validated</div>
+                <div class="fork-text">Vision is clear. Proceed to Design Refinement in Phase 3.</div>
+              </div>
+              <div class="fork-card fail">
+                <div class="fork-label">↩ Not validated</div>
+                <div class="fork-text">Return to Phase 1. Iterate on a new variant. Cost: hours, not sprints.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3 - Design Refinement (NEW) -->
+      <div class="phase phase-design">
+        <div class="phase-label-col">
+          <div class="phase-tag">Design</div>
+          <div class="phase-num">03</div>
+        </div>
+        <div class="phase-content-col">
+          <div class="phase-dot"></div>
+          <div class="node stagger-4">
+            <div class="node-header">
+              <div class="node-title">Design Refinement & System Application</div>
+              <div class="node-tool">Figma · Design System</div>
+            </div>
+            <div class="node-body">
+              With a validated prototype and real stakeholder reactions in hand, this is where UX and design craft is applied: polishing interaction patterns, applying the design system, ensuring accessibility standards, and producing the final visual specification for engineering. Design is working from a position of validated insight rather than assumption.
+            </div>
+            <div class="node-footer">
+              <div class="node-meta">🎨 <strong>Apply design system</strong></div>
+              <div class="node-meta">♿ <strong>Accessibility & standards</strong></div>
+              <div class="node-meta">📐 <strong>Final spec for engineering</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 4 -->
+      <div class="phase phase-3">
+        <div class="phase-label-col">
+          <div class="phase-tag">Engineer</div>
+          <div class="phase-num">04</div>
+        </div>
+        <div class="phase-content-col">
+          <div class="phase-dot"></div>
+          <div class="node stagger-5">
+            <div class="node-header">
+              <div class="node-title">Engineering & Production Build</div>
+              <div class="node-tool">AI-Assisted Coding</div>
+            </div>
+            <div class="node-body">
+              With the final design spec in hand and a working prototype already providing reusable code, engineering can move significantly faster. Rather than building from a blank canvas, engineers reference and adapt the prototype's existing UI, routes, and logic — then add what makes it production-ready: authentication, APIs, error handling, performance, accessibility compliance, analytics, and scale. The guesswork is gone. The vision was validated before a single line of production code was written.
+            </div>
+            <div class="node-footer">
+              <div class="node-meta">♻️ <strong>Reusable prototype code</strong></div>
+              <div class="node-meta">🛡 <strong>Auth, security, scale</strong></div>
+              <div class="node-meta">⚡ <strong>Faster build, less rework</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 5 -->
+      <div class="phase phase-5">
+        <div class="phase-label-col">
+          <div class="phase-tag">Ship</div>
+          <div class="phase-num">05</div>
+        </div>
+        <div class="phase-content-col">
+          <div class="phase-dot"></div>
+          <div class="node stagger-7">
+            <div class="node-header">
+              <div class="node-title">Production Deploy</div>
+              <div class="node-tool">Production</div>
+            </div>
+            <div class="node-body">
+              The product ships faster and with less rework risk. Stakeholders already reacted to the real experience — alignment happened at the prototype stage, not during QA or UAT. Because misalignment was caught when only hours were at stake, late-stage surprises are rare. The team ships what was actually validated, not what was imagined in a document.
+            </div>
+            <div class="node-footer">
+              <div class="node-meta">🚀 <strong>Ship with confidence</strong></div>
+              <div class="node-meta">♻️ <strong>Loop back cheaply</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Counterargument Rebuttal -->
+  <div class="rebuttal" style="animation: fadeUp 0.5s 0.6s ease both; margin-top: 48px;">
+    <div class="rebuttal-header">
+      <div class="rebuttal-icon">🤔</div>
+      <div>
+        <div class="rebuttal-title">"Couldn't a good team just move faster on the traditional path?"</div>
+        <div class="rebuttal-sub">A fair challenge — here's why the delays are structural, not a discipline problem</div>
+      </div>
+    </div>
+    <div class="rebuttal-grid rebuttal-grid-2">
+      <div class="rebuttal-card">
+        <div class="rc-num">01</div>
+        <div class="rc-title">Language is lossy</div>
+        <div class="rc-body">AHA or ADO tickets mean different things to different readers. The first design review reveals those gaps — but by then you've spent weeks writing and scheduling. A prototype is <em>unambiguous</em> from day one.</div>
+      </div>
+      <div class="rebuttal-card">
+        <div class="rc-num">02</div>
+        <div class="rc-title">Dependencies are sequential and load-bearing</div>
+        <div class="rc-body">Engineering waits on design, which waits on tickets, which waits on stakeholder alignment. Each handoff adds weeks. The Fast Track collapses those gates — misalignment surfaces when only hours are at stake, not after weeks of build.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UX/Design Concern Rebuttal -->
+  <div class="rebuttal" style="animation: fadeUp 0.5s 0.7s ease both; border-top-color: var(--cursor); margin-bottom: 56px;">
+    <div class="rebuttal-header" style="background: rgba(147,197,253,0.04);">
+      <div class="rebuttal-icon">🎨</div>
+      <div>
+        <div class="rebuttal-title">"How UX and Design's role changes in this model"</div>
+        <div class="rebuttal-sub">Here's how the Fast Track complements rather than replaces design thinking</div>
+      </div>
+    </div>
+    <div class="rebuttal-grid rebuttal-grid-2">
+      <div class="rebuttal-card">
+        <div class="rc-num" style="color: var(--cursor);">01</div>
+        <div class="rc-title">The prototype is a question, not an answer</div>
+        <div class="rc-body">A Figma Make prototype isn't a final design decision — it's a tangible hypothesis. It makes the problem <em>visible</em> rather than abstract. <strong style="color: var(--text);">Design's role shifts from translating a written brief into pixels, to interrogating a working prototype and identifying what it gets wrong.</strong> That's still design thinking — applied to a richer starting point.</div>
+      </div>
+      <div class="rebuttal-card">
+        <div class="rc-num" style="color: var(--cursor);">02</div>
+        <div class="rc-title">Design depth happens in Phase 2 and beyond</div>
+        <div class="rc-body">The Fast Track doesn't skip UX rigour — it front-loads alignment so designers spend their expertise on <em>validated</em> problems. Rather than spending weeks crafting a solution to a brief that turns out to be the wrong problem, designers engage at Phase 3 with real stakeholder reactions in hand. Their craft goes further because it's applied to signal, not assumption.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role Shifts -->
+  <div style="margin-top: 48px;">
+    <div class="eyebrow" style="margin-bottom: 20px;">How roles shift in this model</div>
+    <div class="roles" style="animation: fadeUp 0.5s 0.7s ease both;">
+      <div class="role-card">
+        <div class="role-icon">🧠</div>
+        <div class="role-old">PM writes requirements</div>
+        <div class="role-new">PM ships prototypes</div>
+        <div class="role-desc">Product thinking is expressed in working software. Taste and judgment matter more than writing ability.</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">⚙️</div>
+        <div class="role-old">Engineer interprets specs</div>
+        <div class="role-new">Engineer connects pipes</div>
+        <div class="role-desc">Less time decoding intent, more time on the hard technical problems that actually require engineering expertise.</div>
+      </div>
+      <div class="role-card">
+        <div class="role-icon">🎨</div>
+        <div class="role-old">Designer works from abstract briefs</div>
+        <div class="role-new">Designer works from validated insights</div>
+        <div class="role-desc">Design craft is applied to a problem that's already been tested with real interactions. Less time spent on the wrong solution, more time refining the right one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Time & Resource Comparison -->
+  <div style="margin-top: 64px;">
+    <div class="eyebrow" style="margin-bottom: 32px;">Time & Resource Comparison</div>
+
+    <!-- Timeline bars -->
+    <div class="pdlc-summary" style="margin-bottom: 32px;">
+      <div class="pdlc-summary-col trad-col">
+        <div class="pdlc-summary-label">Traditional Path</div>
+        <div class="pdlc-summary-bar">
+          <div class="pdlc-bar-fill trad-fill" style="width:100%"></div>
+        </div>
+        <div class="pdlc-summary-time">10–20 weeks</div>
+      </div>
+      <div class="pdlc-summary-col fast-col">
+        <div class="pdlc-summary-label">Fast Track</div>
+        <div class="pdlc-summary-bar">
+          <div class="pdlc-bar-fill fast-fill" style="width:45%"></div>
+        </div>
+        <div class="pdlc-summary-time">5–10 weeks · with less rework</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text">Based on: Lazar Jovanovic · Lenny's Product Podcast · Feb 2026</div>
+    <div class="footer-text">Model: Prototype → Validate → Design → Engineering → Ship</div>
+  </div>
+
+</div>
+</body>
+</html>
